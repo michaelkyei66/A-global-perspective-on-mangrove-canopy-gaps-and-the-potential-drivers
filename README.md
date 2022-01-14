@@ -1,5 +1,3 @@
-# Forest-gaps-and-potential-drivers-in-mangrove-stands-A-global-perspective
-R source code 
 library(biomod2)
 library(ggplot2)
 library(gridExtra)
@@ -8,10 +6,10 @@ library(rasterVis)
 library(rgdal)
 library(ecospat)
 
-C:/Users/mky/Directory/Final
 
 
-setwd("C:/Users/mky/Directory/Final")
+
+setwd("C:/Users/mky/Directory/ESMM")
 gap<-read.csv('pa.csv')
 env  <- gap[, colnames(gap) %in% c("Gaps","bio1", "bio5", "bio6", "bio9","bio13","bio14","bio18","bio19","Lightning","Lat","Lon","cos.lon.","X","Y")]
 View(env)
@@ -38,14 +36,39 @@ BIOMOD_ModelingOptions()
 
 #Defining individual model parameters
 Gap_opt2 <- 
-  BIOMOD_ModelingOptions(
-    GLM = list(type = 'quadratic', interaction.level = 0),
-    GBM = list(n.trees = 2500),
-    GAM = list(algo = 'GAM_mgcv'))
+  BIOMOD_ModelingOptions(GLM = list( type = 'quadratic',interaction.level = 0),
+                         CTA = list( method = 'class'),
+                                     
+    MAXENT.Phillips = list( path_to_maxent.jar = 'C:/Users/mky/Directory/ESMM',
+                            memory_allocated = 512,
+                            background_data_dir = 'default',
+                            maximumbackground = 'default',
+                            maximumiterations = 200,
+                            visible = FALSE,
+                            linear = TRUE,
+                            quadratic = TRUE,
+                            product = TRUE,
+                            threshold = TRUE,
+                            hinge = TRUE,
+                            lq2lqptthreshold = 80,
+                            l2lqthreshold = 10,
+                            hingethreshold = 15,
+                            beta_threshold = -1,
+                            beta_categorical = -1,
+                            beta_lqp = -1,
+                            beta_hinge = -1,
+                            betamultiplier = 1,
+                            defaultprevalence = 0.5),
+    ANN = list( NbCV = 5,
+                size = NULL,
+                decay = NULL,
+                rang = 0.1,
+                maxit = 200))
+
 ## ----ESM.Modeling-------------------------------------------------------------
 ### Calibration of simple bivariate models
 my.ESM2 <- ecospat.ESM.Modeling( data=myBiomodData2,
-                                 models=c("GLM", "GBM", "RF", "GAM"),
+                                 models=c("GLM","MAXENT.Phillips","CTA","ANN"),
                                  models.options=Gap_opt2,
                                  NbRunEval=10,
                                  DataSplit=50,
@@ -61,7 +84,7 @@ my.ESM2$models
 
 my.ESM2$mymodels
 
-
+s
 
 ## ----ESM.EnsembleModeling-----------------------------------------------------
 ### Evaluation and average of simple bivariate models to ESMs
@@ -97,8 +120,3 @@ write.csv( vc , 'varimportance50.csv' )
 output.plot <- ecospat.ESM.responsePlot(ESM.EnsembleModeling.output = my.ESM_EF2,
                                         ESM.modeling.output = my.ESM2)
 
-
-### Projection of simple bivariate models into new space
-my.ESM_proj_current <- ecospat.ESM.Projection(ESM.modeling.output=my.ESM2,new.env=current)
-### Projection of calibrated ESMs into new space
-my.ESM_EFproj_current <- ecospat.ESM.EnsembleProjection(ESM.prediction.output=my.ESM_proj_current,ESM.EnsembleModeling.output=my.ESM_EF2)
