@@ -82,9 +82,6 @@ my.ESM2$which.biva
 #Models used
 my.ESM2$models
 
-my.ESM2$mymodels
-
-s
 
 ## ----ESM.EnsembleModeling-----------------------------------------------------
 ### Evaluation and average of simple bivariate models to ESMs
