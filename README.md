@@ -58,6 +58,8 @@ my.ESM_EF2 <- ecospat.ESM.EnsembleModeling(my.ESM2,weighting.score=c("SomersD"),
 
 my.ESM_EF2$failed
 
+## get the Somers'D weights of the single bivariate models used to build the ESMs
+fw<-my.ESM_EF2$weights
 
 ## get the evaluation scores for the individual models  for all ten runs
 evscore<-my.ESM_EF2$ESM.evaluations
