@@ -34,17 +34,10 @@ myBiomodData2 <- BIOMOD_FormatingData( resp.var = resp.var,
 
 BIOMOD_ModelingOptions()
 
-#Defining individual model parameters
-Gap_opt2 <- 
-  BIOMOD_ModelingOptions(
-    GLM = list(type = 'quadratic', interaction.level = 0),
-    GBM = list(n.trees = 2500),
-    GAM = list(algo = 'GAM_mgcv'))
 ## ----ESM.Modeling-------------------------------------------------------------
 ### Calibration of simple bivariate models
 my.ESM2 <- ecospat.ESM.Modeling( data=myBiomodData2,
                                  models=c("GLM", "GBM", "RF", "GAM"),
-                                 models.options=Gap_opt2,
                                  NbRunEval=10,
                                  DataSplit=50,
                                  weighting.score=c("AUC"),
