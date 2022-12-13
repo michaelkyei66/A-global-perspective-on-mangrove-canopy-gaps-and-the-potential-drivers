@@ -79,3 +79,101 @@ write.csv( vc , 'varimportance50.csv' )
 ## Response plot
 output.plot <- ecospat.ESM.responsePlot(ESM.EnsembleModeling.output = my.ESM_EF2,
                                         ESM.modeling.output = my.ESM2)
+                                        
+                                        
+                                        
+                                        
+  ######R code for determining factors of driving canopy gap density##############.
+
+
+
+library(car)
+library(dplyr)
+library(caret)
+library(lme4)
+library(pscl)
+library(rsq)
+library(MASS)
+library(glm2)
+
+
+###########Data organization#################
+
+setwd("C:/Users/mky/Directory")
+pa<-read.csv('pa.csv')
+# select presences only
+da<-pa[pa$Gaps>0,]
+
+
+#create a new data frame for all variables
+
+data1 <- da[, colnames(da) %in% c("Gapname","numperkm2")]
+
+data <- da[, colnames(da) %in% c("bio1","bio5","bio6","bio9","bio13","bio14","bio18","bio19","Lightning","Lat","cos.lon.")]
+
+
+##############################################################
+#1.Apply a function to standardize the  datasets
+
+standardize<-function(x){
+        return((x-mean(x,na.rm=TRUE))/sd(x,na.rm = TRUE))
+}
+
+std_data<-as.data.frame(apply(data[1:11],2,standardize))
+
+# Create the final datasets for the model 
+
+ba<-cbind.data.frame(std_data,data1)
+View(ba)
+str(ba)
+summary(ba)
+hist(ba$numperkm2)
+hist(ba$bio1)
+hist(ba$bio5)
+hist(ba$bio6)
+hist(ba$bio9)
+hist(ba$bio13)
+hist(ba$bio14)
+hist(ba$bio19)
+hist(ba$cos.lon.)
+hist(ba$Lat)
+hist(ba$Lightning)
+
+#2. log-transforming the 'response variable' to account for the skewed data
+
+hist(log(ba$numperkm2))
+
+
+# 3.Apply the Generalized linear model (GLM) to the data
+
+M2<-glm2(log(numperkm2)~poly(bio1,2)+poly(bio5,2)+poly(bio6,2)+poly(bio9,2)+poly(bio13,2)+poly(bio14,2)+poly(bio18,2)+poly(bio19,2)+poly(Lightning,2)
+          +poly(Lat,2)+poly(cos.lon.,2),family=gaussian(link = 'identity') ,data=ba,control=list(maxit=1000))
+M2.step.aic<-stepAIC(M2,method="both",trace=1)
+summary(M2.step.aic)
+
+#4.Check model quality
+plot(M2)#full model
+plot(M2.step.aic)#optimalmodel
+
+shapiro.test(M2$residuals)
+shapiro.test(M2.step.aic$residuals)
+
+AIC(M2)#Full model
+AIC(M2.step.aic)#optimal model
+
+
+
+
+#5. Determine Adjusted R-squared for model(Goodness of fit)
+rsq(M2.step.aic,adj = TRUE)
+
+#6.Analysis of deviance table as output from model
+variableranking<-anova(M2.step.aic,test="Chisq")
+vr<-data.frame(variableranking)
+View(vr)
+write.csv(vr,'vr.csv')
+
+                                      
+                                        
+                                        
+                                        
